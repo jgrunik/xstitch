@@ -3,13 +3,17 @@
 
 <head>
   <script src="/pixi.js"></script>
-  <script>
-    let app = new PIXI.Application({ width: 640, height: 360 });
-  </script>
 </head>
 
 <body>
   <h1>Hello PixiJS</h1>
+  <input id="csv" type="file">
+  <input type="number" id="quantity" name="quantity" min="0" max="500" step="50" value="0">
+  <output id="out">
+    file contents will appear here
+  </output>
 </body>
+<script src="index.js"></script>
+
 
 </html>
