@@ -1,5 +1,8 @@
+const width = 500
+const height = 500;
+
 // Initialise PIXI
-let app = new PIXI.Application({ width: 500, height: 500 });
+let app = new PIXI.Application({ width, height });
 document.getElementById("canvas_placeholder").replaceWith(app.view);
 
 const graphics = new PIXI.Graphics();
@@ -17,13 +20,57 @@ function randomHex() {
 }
 
 
+// Handle Pan Buttons
+let x = 0, y = 0;
+
+const panLeftButton = document.getElementById("pan_left");
+const panRightButton = document.getElementById("pan_right");
+const panUpButton = document.getElementById("pan_up");
+const panDownButton = document.getElementById("pan_down");
+
+
+panLeftButton.addEventListener('click', panLeft);
+panRightButton.addEventListener('click', panRight);
+panUpButton.addEventListener('click', panUp);
+panDownButton.addEventListener('click', panDown);
+
+function panLeft() {
+  x = Math.max(x - width / zoom, 0);
+  dispatchEvent(new Event("x::change"));
+}
+
+function panRight() {
+  x = Math.min(x + width / zoom, width - width / zoom);
+  dispatchEvent(new Event("x::change"));
+}
+
+function panUp() {
+  y = Math.max(y - height / zoom, 0);
+  dispatchEvent(new Event("y::change"));
+}
+
+function panDown() {
+  y = Math.min(y + height / zoom, height - width / zoom);
+  dispatchEvent(new Event("y::change"));
+}
+
+addEventListener('zoom::change', fixPan)
+
+function fixPan() {
+  x = Math.min(x, width - width / zoom);
+  y = Math.min(y, height - height / zoom);
+}
+
+
 // Handle Zoom Buttons
 const ZoomLevels = [1, 2, 4, 5, 10, 20, 25, 50, 100, 125, 250, 500]; // factors of 500
 let zoomIndex = 6;
+let zoom = ZoomLevels[zoomIndex];
 
-const zoomInButton = document.getElementById("zoom_in")
-const zoomOutButton = document.getElementById("zoom_out")
-const zoomText = document.getElementById("zoom_text")
+const zoomInButton = document.getElementById("zoom_in");
+const zoomOutButton = document.getElementById("zoom_out");
+const zoomText = document.getElementById("zoom_text");
+updateZoomText();
 
 zoomInButton.addEventListener('click', zoomIn)
 zoomOutButton.addEventListener('click', zoomOut)
@@ -39,15 +86,21 @@ function zoomOut() {
   dispatchEvent(new Event("zoomIndex::change"));
 }
 
-addEventListener('zoomIndex::change', updateZoomText)
+addEventListener('zoomIndex::change', updateZoom)
+
+function updateZoom() {
+  zoom = ZoomLevels[zoomIndex];
+  dispatchEvent(new Event("zoom::change"));
+}
+
+addEventListener('zoom::change', updateZoomText)
 
 function updateZoomText() {
-  zoomText.innerText = 'x' + ZoomLevels[zoomIndex]
+  zoomText.innerText = 'x' + ZoomLevels[zoomIndex];
 }
 
 
 // Handle File Input
-
 const fileInput = document.getElementById("csv");
 
 fileInput.addEventListener('change', readFile);
@@ -66,14 +119,14 @@ function readFile() {
 
 
 // Handle Drawing
-
 addEventListener('stitchChart::change', draw)
+addEventListener("x::change", draw);
+addEventListener("y::change", draw);
 addEventListener('zoomIndex::change', draw)
 
 function draw() {
   graphics.clear()
-  const zoom = ZoomLevels[zoomIndex];
-  drawSubsection(stitchChart, 0, 0, 500 / zoom, 500 / zoom, zoom);
+  drawSubsection(stitchChart, x, y, width / zoom, height / zoom, zoom);
 }
 
 function drawSubsection(stitchChart, x, y, width, height, scale) {
@@ -82,8 +135,8 @@ function drawSubsection(stitchChart, x, y, width, height, scale) {
 }
 
 function drawStitchChart(stitchChart, scale) {
-  for (let rowIndex in stitchChart)
-    for (let columnIndex in stitchChart[rowIndex]) {
+  for (const rowIndex in stitchChart)
+    for (const columnIndex in stitchChart[rowIndex]) {
       const color = ColorLookup[stitchChart[rowIndex][columnIndex]];
       drawSquare(color, columnIndex * scale, rowIndex * scale, scale, scale);
     }
@@ -97,5 +150,5 @@ function drawSquare(color, x, y, width, height) {
 
 // returns a subsection of a 2d array
 function slice2D(array2D, x, y, width, height) {
-  return array2D.slice(x, x + width).map(row => row.slice(y, y + height));
+  return array2D.slice(y, y + height).map(row => row.slice(x, x + width));
 }
