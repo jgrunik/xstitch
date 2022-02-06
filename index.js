@@ -11,16 +11,31 @@ app.stage.addChild(graphics)
 
 // 2D array of colour indices
 let stitchChart = [];
-// make 80 random hex values for color lookup
-const ColorLookup = Array.from({ length: 80 }, randomHex)
 
 
-function randomHex() {
-  return Math.floor(Math.random() * 0x1000000)
+// Handle Color
+const numberOfColors = 73;
+let ColorLookup = generateColorLookup(randomHex)
+
+function generateColorLookup(colorTheme) {
+  return Array.from({ length: numberOfColors }).map(colorTheme)
 }
 
+function randomHex() { return Math.floor(0x1000000 * Math.random()); }
+function spectrum(e, i, { length }) { return 0xFFFFFF / length * i; }
 
-// Handle Pan Buttons
+const colorsRandomButton = document.getElementById("colors_random");
+const colorsSpectrumButton = document.getElementById("colors_spectrum");
+
+colorsRandomButton.addEventListener('click', () => setColorTheme(randomHex))
+colorsSpectrumButton.addEventListener('click', () => setColorTheme(spectrum))
+
+function setColorTheme(theme) {
+  ColorLookup = generateColorLookup(theme);
+  dispatchEvent(new Event("ColorLookup::change"));
+}
+
+// Handle Panning
 let x = 0, y = 0;
 
 const panLeftButton = document.getElementById("pan_left");
@@ -62,7 +77,7 @@ function fixPan() {
 }
 
 
-// Handle Zoom Buttons
+// Handle Zooming
 const ZoomLevels = [1, 2, 4, 5, 10, 20, 25, 50, 100, 125, 250, 500]; // factors of 500
 let zoomIndex = 0;
 let zoom = ZoomLevels[zoomIndex];
@@ -70,11 +85,10 @@ let zoom = ZoomLevels[zoomIndex];
 const zoomInButton = document.getElementById("zoom_in");
 const zoomOutButton = document.getElementById("zoom_out");
 const zoomText = document.getElementById("zoom_text");
-updateZoomText();
+dispatchEvent(new Event("zoomIndex::change"));
 
 zoomInButton.addEventListener('click', zoomIn)
 zoomOutButton.addEventListener('click', zoomOut)
-dispatchEvent(new Event("zoomIndex::change"));
 
 function zoomIn() {
   zoomIndex = Math.min(++zoomIndex, ZoomLevels.length - 1);
@@ -123,6 +137,7 @@ addEventListener('stitchChart::change', draw)
 addEventListener("x::change", draw);
 addEventListener("y::change", draw);
 addEventListener('zoomIndex::change', draw)
+addEventListener('ColorLookup::change', draw)
 
 function draw() {
   graphics.clear()
