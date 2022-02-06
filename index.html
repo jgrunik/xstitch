@@ -6,14 +6,20 @@
 </head>
 
 <body>
-  <h1>Hello PixiJS</h1>
+  <h1>xstitch</h1>
   <input id="csv" type="file">
-  <input type="number" id="quantity" name="quantity" min="0" max="500" step="50" value="0">
-  <output id="out">
-    file contents will appear here
-  </output>
+  <br />
+  <div id="canvas_placeholder"></div>
+  <br />
+  🔎
+  <input id="zoom_out" type="button" value="-">
+  <p id="zoom_text" style="display:inline-block; text-align: center; width:35px;">x1</p>
+  <input id="zoom_in" type="button" value="+">
+  <br />
 </body>
-<script src="index.js"></script>
 
+<footer>
+  <script src="index.js"></script>
+</footer>
 
 </html>
