@@ -64,7 +64,7 @@ function fixPan() {
 
 // Handle Zoom Buttons
 const ZoomLevels = [1, 2, 4, 5, 10, 20, 25, 50, 100, 125, 250, 500]; // factors of 500
-let zoomIndex = 6;
+let zoomIndex = 0;
 let zoom = ZoomLevels[zoomIndex];
 
 const zoomInButton = document.getElementById("zoom_in");
