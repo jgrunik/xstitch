@@ -1,0 +1,16 @@
+#pan_controls {
+  display: grid;
+  grid-gap: 5px;
+  grid-template-columns: repeat(3, 40px);
+}
+
+#pan_controls>* {
+  padding: 10px;
+  background-color: #ccc;
+}
+
+#zoom_text {
+  display: inline-block;
+  text-align: center;
+  width: 35px;
+}
