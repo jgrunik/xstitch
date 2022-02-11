@@ -1,24 +1,21 @@
-const width = 500
-const height = 500;
+const width = 500, height = 500;
 
 // Initialise PIXI
 let app = new PIXI.Application({ width, height });
 document.getElementById("canvas_placeholder").replaceWith(app.view);
 
 const graphics = new PIXI.Graphics();
-app.stage.addChild(graphics)
+app.stage.addChild(graphics);
 
 
-// 2D array of colour indices
-let stitchChart = [];
-
+let stitchChart = []; // 2d array of colour indices
 
 // Handle Color
 const numberOfColors = 73;
-let ColorLookup = generateColorLookup(randomHex)
+let ColorLookup = generateColorLookup(randomHex);
 
 function generateColorLookup(colorTheme) {
-  return Array.from({ length: numberOfColors }).map(colorTheme)
+  return Array.from({ length: numberOfColors }).map(colorTheme);
 }
 
 function randomHex() { return Math.floor(0x1000000 * Math.random()); }
@@ -27,8 +24,8 @@ function spectrum(e, i, { length }) { return 0xFFFFFF / length * i; }
 const colorsRandomButton = document.getElementById("colors_random");
 const colorsSpectrumButton = document.getElementById("colors_spectrum");
 
-colorsRandomButton.addEventListener('click', () => setColorTheme(randomHex))
-colorsSpectrumButton.addEventListener('click', () => setColorTheme(spectrum))
+colorsRandomButton.addEventListener('click', () => setColorTheme(randomHex));
+colorsSpectrumButton.addEventListener('click', () => setColorTheme(spectrum));
 
 function setColorTheme(theme) {
   ColorLookup = generateColorLookup(theme);
@@ -43,7 +40,6 @@ const panRightButton = document.getElementById("pan_right");
 const panUpButton = document.getElementById("pan_up");
 const panDownButton = document.getElementById("pan_down");
 
-
 panLeftButton.addEventListener('click', panLeft);
 panRightButton.addEventListener('click', panRight);
 panUpButton.addEventListener('click', panUp);
@@ -51,30 +47,44 @@ panDownButton.addEventListener('click', panDown);
 
 function panLeft() {
   x = Math.max(x - width / zoom, 0);
-  dispatchEvent(new Event("x::change"));
+  dispatchEvent(new Event("pan::change"));
 }
 
 function panRight() {
   x = Math.min(x + width / zoom, width - width / zoom);
-  dispatchEvent(new Event("x::change"));
+  dispatchEvent(new Event("pan::change"));
 }
 
 function panUp() {
   y = Math.max(y - height / zoom, 0);
-  dispatchEvent(new Event("y::change"));
+  dispatchEvent(new Event("pan::change"));
 }
 
 function panDown() {
-  y = Math.min(y + height / zoom, height - width / zoom);
-  dispatchEvent(new Event("y::change"));
+  y = Math.min(y + height / zoom, height - height / zoom);
+  dispatchEvent(new Event("pan::change"));
 }
 
-addEventListener('zoom::change', fixPan)
-
-function fixPan() {
-  x = Math.min(x, width - width / zoom);
-  y = Math.min(y, height - height / zoom);
+function pan(xDist = 0, yDist = 0) {
+  x = Math.min(Math.max(x - xDist, 0), width - width / zoom);
+  y = Math.min(Math.max(y - yDist, 0), height - height / zoom);
+  dispatchEvent(new Event("pan::change"));
 }
+
+// mouse drag to pan 
+function panDrag({ movementX, movementY }) {
+  pan(movementX / zoom, movementY / zoom);
+}
+
+app.view.addEventListener("mousedown", () => {
+  document.body.addEventListener("mousemove", panDrag);
+});
+
+// mousemove event caters for release out of window
+document.body.addEventListener("mousemove", ({ buttons }) => {
+  if (buttons != 1) // left mouse button
+    document.body.removeEventListener("mousemove", panDrag);
+});
 
 
 // Handle Zooming
@@ -107,11 +117,14 @@ function updateZoom() {
   dispatchEvent(new Event("zoom::change"));
 }
 
-addEventListener('zoom::change', updateZoomText)
+addEventListener('zoomIndex::change', updateZoomText)
 
 function updateZoomText() {
   zoomText.innerText = 'x' + ZoomLevels[zoomIndex];
 }
+
+// fix for zooming out of bounds
+addEventListener('zoom::change', () => pan())
 
 
 // Handle File Input
@@ -131,22 +144,35 @@ function readFile() {
   reader.readAsBinaryString(fileInput.files[0]);
 };
 
-
-// Handle Drawing
-addEventListener('stitchChart::change', draw)
-addEventListener("x::change", draw);
-addEventListener("y::change", draw);
-addEventListener('zoomIndex::change', draw)
-addEventListener('ColorLookup::change', draw)
-
-function draw() {
-  graphics.clear()
-  drawSubsection(stitchChart, x, y, width / zoom, height / zoom, zoom);
+function readFileAsync(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsBinaryString(file);
+  })
 }
 
-function drawSubsection(stitchChart, x, y, width, height, scale) {
-  const subsection = slice2D(stitchChart, x, y, width, height);
-  drawStitchChart(subsection, scale);
+
+// Handle Drawing
+addEventListener('stitchChart::change', queueRedraw);
+addEventListener("pan::change", queueRedraw);
+addEventListener('zoom::change', queueRedraw);
+addEventListener('ColorLookup::change', queueRedraw)
+
+let willRedraw = false;
+function queueRedraw() { willRedraw = true; }
+
+window.requestAnimationFrame(drawLoop);
+function drawLoop() {
+  if (willRedraw) {
+    graphics.clear()
+    const subsection = slice2D(stitchChart, x, y, width / zoom, height / zoom);
+    drawStitchChart(subsection, zoom);
+    willRedraw = false;
+  }
+
+  window.requestAnimationFrame(drawLoop);
 }
 
 function drawStitchChart(stitchChart, scale) {
