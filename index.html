@@ -3,7 +3,8 @@
 
 <head>
   <link rel="stylesheet" href="/index.css">
-  <script src="/pixi.js"></script>
+  <script src="/lib/pixi.js"></script>
+  <script defer type="module" src="/index.js"></script>
 </head>
 
 <body>
@@ -11,6 +12,11 @@
   <input id="csv" type="file">
   <br />
   <div id="canvas_placeholder"></div>
+  <br />
+  🔎
+  <input id="zoom_out" type="button" value="-">
+  <p id="zoom_text">x1</p>
+  <input id="zoom_in" type="button" value="+">
   <br />
   <div id="pan_controls">
     <div></div>
@@ -23,19 +29,6 @@
     <input id="pan_down" type="button" value="▼">
     <div></div>
   </div>
-  🔎
-  <input id="zoom_out" type="button" value="-">
-  <p id="zoom_text">x1</p>
-  <input id="zoom_in" type="button" value="+">
-  <br />
-  🎨
-  <input id="colors_random" type="button" value="random">
-  <input id="colors_spectrum" type="button" value="specturm">
-  <br />
 </body>
-
-<footer>
-  <script src="index.js"></script>
-</footer>
 
 </html>
