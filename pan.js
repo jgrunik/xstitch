@@ -5,26 +5,26 @@ export let x = 0
 export let y = 0;
 
 export function panLeft() {
-  const _x = Math.max(x - width / zoom, 0);
-  x = _x;
+  const _x = x;
+  x = Math.max(x - width / zoom, 0);
   if (x != _x) dispatchEvent(new Event("pan::change"));
 }
 
 export function panRight() {
-  const _x = Math.min(x + width / zoom, width - width / zoom);
-  x = _x;
+  const _x = x;
+  x = Math.min(x + width / zoom, width - width / zoom);
   if (x != _x) dispatchEvent(new Event("pan::change"));
 }
 
 export function panUp() {
-  const _y = Math.max(y - height / zoom, 0);
-  y = _y;
+  const _y = y;
+  y = Math.max(y - height / zoom, 0);
   if (y != _y) dispatchEvent(new Event("pan::change"));
 }
 
 export function panDown() {
-  const _y = Math.min(y + height / zoom, height - height / zoom);
-  y = _y;
+  const _y = y;
+  y = Math.min(y + height / zoom, height - height / zoom);
   if (y != _y) dispatchEvent(new Event("pan::change"));
 }
 
